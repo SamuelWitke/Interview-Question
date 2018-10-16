@@ -9,7 +9,6 @@ import { ReduxCache, } from 'apollo-cache-redux';
 import { rootReducer } from './reducers';
 import logger from 'redux-logger';
 import App from './App';
-import * as serviceWorker from './serviceWorker';                                                                                                                                       
 
 
 // Redux Store Setup
@@ -46,4 +45,3 @@ ReactDOM.render(
   document.getElementById('root'),
 );
 
-serviceWorker.register();                                                                                                                                                             

@@ -15,12 +15,12 @@ export const reducer = (state = {}, {type, payload}) => {
           return Object.assign({},state,newState);
       }
       case IN_PROGRESS: {
-          const { id } = payload;
+          const { id, delay } = payload;
           if(!(id in state)) {
               throw Error("ID NOT FOUND")
           }
           return Object.assign({},state,{
-              [id] : Object.assign({},state[id], {state: IN_PROGRESS})
+              [id] : Object.assign({},state[id], {state: IN_PROGRESS, delay})
           });
       }
       case CALCULATED:{

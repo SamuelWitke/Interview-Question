@@ -6,6 +6,7 @@ import { Query } from 'react-apollo';
 import { connect } from 'react-redux';
 import { INIT, IN_PROGRESS, CALCULATED } from './reducers/ants';
 import { UI_IN_PROGRESS, UI_CALCULATED } from './reducers/ui';
+import ProgressBarExample from './components/Progress';
 
 const data = gql`
 query GetAnts{
@@ -18,9 +19,11 @@ query GetAnts{
 }
 `;
 
-function generateAntWinLikelihoodCalculator(id) {
+
+function generateAntWinLikelihoodCalculator(id,inProgress) {
   var delay = 7000 + Math.random() * 7000;
   var likelihoodOfAntWinning = Math.random();
+  inProgress(id,delay)
   return function (callback) {
     setTimeout(function () {
       callback(id, likelihoodOfAntWinning);
@@ -41,8 +44,7 @@ class App extends React.Component {
     uiInProgress();
     const requests = queryData.ants.map((element) => {
       return new Promise((resolve) => {
-        inProgress(element.name);
-        generateAntWinLikelihoodCalculator(element.name)(
+        generateAntWinLikelihoodCalculator(element.name,inProgress)(
           (id, likelihoodOfAntWinning) => {
             resolve({ id, likelihoodOfAntWinning });
           })
@@ -57,15 +59,31 @@ class App extends React.Component {
     values.sort((a, b) => a.likelihoodOfAntWinning - b.likelihoodOfAntWinning);
     return (
       <div>
-        {ui.state}
+        {(function () {
+          switch (ui.state) {
+            case UI_IN_PROGRESS:
+              return <div>
+                Race in Progress
+              </div>
+            default:
+              return <div>Click the Button To Start The Race</div>
+          }
+        })()
+        }
         <ul>
           {values.map((ant, id) => (
             <li key={id}>
-              <p> {ant.name} {ant.state} {ant.likelihoodOfAntWinning} </p>
+              <p> {ant.name} {ant.likelihoodOfAntWinning && <span>
+                  Likely Hood of Ant Winning
+                  &nbsp;
+                  {ant.likelihoodOfAntWinning.toFixed(2) * 100 }
+                  %
+              </span> }  </p>
+              {ant.state === IN_PROGRESS && <ProgressBarExample interval={ant.delay} /> }
             </li>
           ))}
         </ul>
-        <button disabled={ui.buttonDisabled} onClick={this.startTest}>startTest</button>
+        <button disabled={ui.buttonDisabled} onClick={this.startTest}>Start Test</button>
       </div>
     )
   }
@@ -81,7 +99,7 @@ const ReduxWapper = connect(
     uiInProgress: () => dispatch({ type: UI_IN_PROGRESS }),
     uiCompleted: () => dispatch({ type: UI_CALCULATED }),
     initalize: (ants) => dispatch({ type: INIT, payload: ants }),
-    inProgress: (id) => dispatch({ type: IN_PROGRESS, payload: { id } }),
+    inProgress: (id,delay) => dispatch({ type: IN_PROGRESS, payload: { id, delay } }),
     completed: (id, likelihoodOfAntWinning) => dispatch({ type: CALCULATED, payload: { id, likelihoodOfAntWinning } })
   })
 )(App)
