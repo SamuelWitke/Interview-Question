@@ -4,21 +4,9 @@ import './App.css';
 import gql from 'graphql-tag';
 import { Query } from 'react-apollo';
 import { connect } from 'react-redux';
-import { INIT, IN_PROGRESS, CALCULATED } from './reducers/ants';
+import { ANT_INIT, ANT_IN_PROGRESS, ANT_CALCULATED } from './reducers/ants';
 import { UI_IN_PROGRESS, UI_CALCULATED } from './reducers/ui';
-import ProgressBarExample from './components/Progress';
-
-const data = gql`
-query GetAnts{
-  ants {
-    weight,
-    name,
-    color,
-    length,
-  }
-}
-`;
-
+import ProgressBarTimer, { ProgressBar } from './components/Progress';
 
 function generateAntWinLikelihoodCalculator(id,inProgress) {
   var delay = 7000 + Math.random() * 7000;
@@ -32,11 +20,9 @@ function generateAntWinLikelihoodCalculator(id,inProgress) {
 }
 
 class App extends React.Component {
-
   componentWillMount() {
     const { queryData, initalize, } = this.props;
     initalize(queryData.ants);
-
   }
 
   startTest = () => {
@@ -44,11 +30,10 @@ class App extends React.Component {
     uiInProgress();
     const requests = queryData.ants.map((element) => {
       return new Promise((resolve) => {
-        generateAntWinLikelihoodCalculator(element.name,inProgress)(
-          (id, likelihoodOfAntWinning) => {
-            resolve({ id, likelihoodOfAntWinning });
-          })
-      }).then(({ id, likelihoodOfAntWinning }) => completed(id, likelihoodOfAntWinning))
+        const generate = generateAntWinLikelihoodCalculator(element.name,inProgress)
+        generate((id, likelihoodOfAntWinning) => resolve({ id, likelihoodOfAntWinning }))
+      })
+      .then(({ id, likelihoodOfAntWinning }) => completed(id, likelihoodOfAntWinning))
     });
     Promise.all(requests).then(() => uiCompleted())
   }
@@ -61,9 +46,21 @@ class App extends React.Component {
       <div>
         {(function () {
           switch (ui.state) {
+            case UI_CALCULATED:
+              return <div>
+               Race Calculated 
+               Winner {values[values.length-1].name}
+              </div>
             case UI_IN_PROGRESS:
               return <div>
                 Race in Progress
+                &nbsp;
+                Ants Completed:
+                { ui.antsCompleted }
+                &nbsp;
+                Ants In Progress: 
+                {ui.antsInProgress}
+                <ProgressBar percentage={ui.antsCompleted / values.length * 100} />
               </div>
             default:
               return <div>Click the Button To Start The Race</div>
@@ -73,13 +70,19 @@ class App extends React.Component {
         <ul>
           {values.map((ant, id) => (
             <li key={id}>
-              <p> {ant.name} {ant.likelihoodOfAntWinning && <span>
+            <ul>
+              <li> Name:   {ant.name} </li>
+              <li> Weight: {ant.weight} </li>
+              <li> Color:  {ant.color} </li> 
+              <li> Length: {ant.length} </li>
+              {ant.likelihoodOfAntWinning && <span>
                   Likely Hood of Ant Winning
                   &nbsp;
                   {ant.likelihoodOfAntWinning.toFixed(2) * 100 }
                   %
-              </span> }  </p>
-              {ant.state === IN_PROGRESS && <ProgressBarExample interval={ant.delay} /> }
+              </span>}  
+            </ul>
+              {ant.state === ANT_IN_PROGRESS && <ProgressBarTimer interval={ant.delay} /> }
             </li>
           ))}
         </ul>
@@ -98,11 +101,22 @@ const ReduxWapper = connect(
   (dispatch) => ({
     uiInProgress: () => dispatch({ type: UI_IN_PROGRESS }),
     uiCompleted: () => dispatch({ type: UI_CALCULATED }),
-    initalize: (ants) => dispatch({ type: INIT, payload: ants }),
-    inProgress: (id,delay) => dispatch({ type: IN_PROGRESS, payload: { id, delay } }),
-    completed: (id, likelihoodOfAntWinning) => dispatch({ type: CALCULATED, payload: { id, likelihoodOfAntWinning } })
+    initalize: (ants) => dispatch({ type: ANT_INIT, payload: ants }),
+    inProgress: (id,delay) => dispatch({ type: ANT_IN_PROGRESS, payload: { id, delay } }),
+    completed: (id, likelihoodOfAntWinning) => dispatch({ type: ANT_CALCULATED, payload: { id, likelihoodOfAntWinning }})
   })
 )(App)
+
+const data = gql`
+query GetAnts{
+  ants {
+    weight,
+    name,
+    color,
+    length,
+  }
+}
+`;
 
 // Graphql QL Wrapper Component
 const QueryWrapper = (props) => (

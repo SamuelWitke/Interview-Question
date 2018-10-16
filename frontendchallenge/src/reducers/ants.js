@@ -1,38 +1,39 @@
-export const INIT = "@@ANTS INIT";
-export const NOT_RUN_YET = "@@ANTS NOT_RUN_YET";
-export const CALCULATED = "@@ANTS CALCULATED";
-export const IN_PROGRESS = "@@ANTS IN_PROGRESS";
+export const ANT_INIT = "@@ANT INIT";
+export const ANT_NOT_RUN_YET = "@@ANT NOT_RUN_YET";
+export const ANT_CALCULATED = "@@ANT CALCULATED";
+export const ANT_IN_PROGRESS = "@@ANT IN_PROGRESS";
 
 
-export const reducer = (state = {}, {type, payload}) => {
+export const reducer = (store= {}, {type, payload}) => {
     switch (type) {
-      case INIT: {
+      case ANT_INIT: {
+          /* Increase look up speed by creating a hash*/
           const newState = payload.reduce( (map,ant) => {
-              ant.state = NOT_RUN_YET;
-              map[ant.name] = ant;
+              ant.state = ANT_NOT_RUN_YET;
+              map[ant.name] = ant; // Assume Ant.name is unique
              return map; 
           },{})
-          return Object.assign({},state,newState);
+          return Object.assign({},store,newState);
       }
-      case IN_PROGRESS: {
+      case ANT_IN_PROGRESS: {
           const { id, delay } = payload;
-          if(!(id in state)) {
+          if(!(id in store)) {
               throw Error("ID NOT FOUND")
           }
-          return Object.assign({},state,{
-              [id] : Object.assign({},state[id], {state: IN_PROGRESS, delay})
-          });
+          return Object.assign({},store,{
+              [id] : Object.assign({},store[id], {state: ANT_IN_PROGRESS, delay})
+          }); // Find and update ant record in 0(1);
       }
-      case CALCULATED:{
+      case ANT_CALCULATED:{
           const { id, likelihoodOfAntWinning} = payload;
-            if(!(id in state)) {
+            if(!(id in store)) {
               throw Error("ID NOT FOUND")
           }
-          return Object.assign({},state,{
-              [id] : Object.assign({},state[id], {state: CALCULATED, likelihoodOfAntWinning})
-          });
+          return Object.assign({},store,{
+              [id] : Object.assign({},store[id], {state: ANT_CALCULATED, likelihoodOfAntWinning})
+          }); // Find and update ant record in 0(1);
       }
       default:
-        return state;
+        return store;
     }
   }

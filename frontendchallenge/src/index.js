@@ -10,7 +10,6 @@ import { rootReducer } from './reducers';
 import logger from 'redux-logger';
 import App from './App';
 
-
 // Redux Store Setup
 const store = createStore(
   rootReducer,
@@ -19,18 +18,13 @@ const store = createStore(
     applyMiddleware(logger),
     // If you are using the devToolsExtension, you can add it here also
     (typeof window.__REDUX_DEVTOOLS_EXTENSION__ !== 'undefined') ? window.__REDUX_DEVTOOLS_EXTENSION__() : f => f,
-)
+  )
 );
 
 // Apollo Client Setup
 const cache = new ReduxCache({ store });
 const URL = 'https://graphql-ants.herokuapp.com/graphql';
-
-const httpLink = new HttpLink({
-  uri: URL,
- 
-});
-
+const httpLink = new HttpLink({uri: URL,});
 const client = new ApolloClient({
   link: httpLink,
   cache,
@@ -44,4 +38,3 @@ ReactDOM.render(
   </ApolloProvider>,
   document.getElementById('root'),
 );
-

@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default class ProgressBarExample extends React.Component {
+export default class ProgressBarTimer extends React.Component {
     state = {
         counter: 0,
         intervalId: null,
@@ -9,26 +9,24 @@ export default class ProgressBarExample extends React.Component {
         clearInterval(this.state.intervalId);
     }
     componentDidMount() {
-        const intervalId = setInterval(this.timer, 1000);
+        const intervalId = setInterval(this.timer, 500);
         this.setState({ intervalId: intervalId });
     }
     timer = () => {
-        console.log("here")
-        console.log(this.props.interval, this.state.counter)
         if (this.props.interval > this.state.counter) {
-            this.setState({ counter: this.state.counter + 1000 });
+            this.setState({ counter: this.state.counter + 500 });
         } else {
             clearInterval(this.timer)
         }
     }
     render() {
         return (
-            <ProgressBar percentage={this.state.counter / this.props.interval * 100} />
+            <ProgressBar percentage={(this.state.counter / this.props.interval).toFixed(2) * 100} />
         )
     }
 }
 
-const ProgressBar = (props) => (
+export const ProgressBar = (props) => (
     <div className="progress-bar">
         <Filler percentage={props.percentage} />
     </div>
